@@ -13,25 +13,25 @@ CAMS lets a user register, log in, and manage their job applications in one plac
 ## Tech Stack
 
 ### Backend
-| Technology | Version | Role |
-|---|---|---|
-| Java | 21 (LTS) | Core language |
-| Spring Boot | 3.x | Application framework |
-| Spring Security + JWT (JJWT) | 0.12.6 | Stateless authentication |
-| Spring Data JPA + Hibernate | 3.x / 7.x | Database access and ORM |
-| PostgreSQL | 18.x | Relational database |
-| Flyway | 11.x | Versioned schema migrations |
-| SpringDoc / OpenAPI | 2.8.8 | Interactive API documentation |
-| Maven | 3.x | Build and dependency management |
+| Technology | Version                      | Role |
+|---|------------------------------|---|
+| Java | 25 (LTS)                     | Core language |
+| Spring Boot | 4.0.6                        | Application framework |
+| Spring Security + JWT (JJWT) | 0.12.6                       | Stateless authentication |
+| Spring Data JPA + Hibernate | Managed by Spring Boot 4.0.6 | Database access and ORM |
+| PostgreSQL | 18                           | Relational database |
+| Flyway | 11.14.1                      | Versioned schema migrations |
+| SpringDoc / OpenAPI | 2.8.8                        | Interactive API documentation |
+| Maven | 3.9.15                       | Build and dependency management |
 
 ### Frontend
 | Technology | Version | Role |
 |---|---|---|
-| React | 19.x | UI library |
-| Vite | 6.x | Build tool and dev server |
-| Tailwind CSS | v4 | Utility-first styling |
-| React Router | 7.x | Client-side routing |
-| Axios | 1.x | HTTP client with JWT interceptor |
+| React | 19.2.6 | UI library |
+| Vite | 8.0.12 | Build tool and dev server |
+| Tailwind CSS | 4.3.0 | Utility-first styling |
+| React Router | 7.17.0  | Client-side routing |
+| Axios | 1.17.0  | HTTP client with JWT interceptor |
 | Recharts | 3.8.1 | Chart components for the dashboard |
 
 ---
@@ -79,10 +79,10 @@ job-application-tracker/
 
 ### Prerequisites
 
-- Java 21
-- Maven 3.x
-- PostgreSQL (running locally)
-- Node.js 22.x (LTS)
+- Java 25
+- Maven 3.9+
+- PostgreSQL 15+ (running locally)
+- Node.js 24+ (LTS)
 
 ### 1. Database setup
 
@@ -95,15 +95,17 @@ GRANT ALL PRIVILEGES ON DATABASE cams_db TO cams_user;
 ALTER DATABASE cams_db OWNER TO cams_user;
 ```
 
-### 2. Environment variable
+### 2. Environment variables
 
-The JWT secret is read from an environment variable and is never stored in source control. Set it before starting the backend:
+Two values are read from environment variables and are never stored in source control.
+Set both before starting the backend:
 
 ```bash
 export JWT_SECRET=your-base64-encoded-256-bit-secret
+export DB_PASSWORD=your-database-password
 ```
 
-Or add it to your IDE's run configuration under **Environment variables**.
+Or add them to your IDE's run configuration under **Environment variables**.
 
 ### 3. Backend
 
