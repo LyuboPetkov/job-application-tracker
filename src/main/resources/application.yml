@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: cams
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cams_db
+    username: cams_user
+    password: cams-password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET}
+      expiration: 86400000 # 24 hours in milliseconds
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+kind: Application
