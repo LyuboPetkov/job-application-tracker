@@ -1,0 +1,48 @@
+services:
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: cams_db
+      POSTGRES_USER: cams_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - cams-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cams_db
+      SPRING_DATASOURCE_USERNAME: cams_user
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    networks:
+      - cams-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - cams-network
+
+networks:
+  cams-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
