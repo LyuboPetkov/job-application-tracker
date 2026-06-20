@@ -1,6 +1,8 @@
 # CAMS — Career Application Management System
 
-A full-stack personal job application tracker built as a portfolio project demonstrating junior-to-intermediate Java and Spring Boot development practices.
+> **Live demo:** [https://cams-tracker.online](https://cams-tracker.online)
+
+A full-stack personal job application tracker built as a portfolio project demonstrating junior-to-intermediate Java and Spring Boot development practices. The full stack runs in Docker and is deployed live on Oracle Cloud with HTTPS.
 
 ---
 
@@ -13,16 +15,16 @@ CAMS lets a user register, log in, and manage their job applications in one plac
 ## Tech Stack
 
 ### Backend
-| Technology | Version                      | Role |
-|---|------------------------------|---|
-| Java | 25 (LTS)                     | Core language |
-| Spring Boot | 4.0.6                        | Application framework |
-| Spring Security + JWT (JJWT) | 0.12.6                       | Stateless authentication |
+| Technology | Version | Role |
+|---|---|---|
+| Java | 25 | Core language |
+| Spring Boot | 4.0.6 | Application framework |
+| Spring Security + JWT (JJWT) | 0.12.6 | Stateless authentication |
 | Spring Data JPA + Hibernate | Managed by Spring Boot 4.0.6 | Database access and ORM |
-| PostgreSQL | 18                           | Relational database |
-| Flyway | 11.14.1                      | Versioned schema migrations |
-| SpringDoc / OpenAPI | 2.8.8                        | Interactive API documentation |
-| Maven | 3.9.15                       | Build and dependency management |
+| PostgreSQL | 18 | Relational database |
+| Flyway | 11.14.1 | Versioned schema migrations |
+| SpringDoc / OpenAPI | 2.8.8 | Interactive API documentation |
+| Maven | 3.9.15 | Build and dependency management |
 
 ### Frontend
 | Technology | Version | Role |
@@ -30,9 +32,18 @@ CAMS lets a user register, log in, and manage their job applications in one plac
 | React | 19.2.6 | UI library |
 | Vite | 8.0.12 | Build tool and dev server |
 | Tailwind CSS | 4.3.0 | Utility-first styling |
-| React Router | 7.17.0  | Client-side routing |
-| Axios | 1.17.0  | HTTP client with JWT interceptor |
+| React Router | 7.17.0 | Client-side routing |
+| Axios | 1.17.0 | HTTP client with JWT interceptor |
 | Recharts | 3.8.1 | Chart components for the dashboard |
+
+### Infrastructure
+| Technology | Version       | Role |
+|---|---------------|---|
+| Docker | 29.5.3        | Container runtime |
+| Docker Compose | v5.1.4         | Multi-container orchestration |
+| Nginx | 1.31 (Alpine) | Static file server and HTTPS reverse proxy |
+| Oracle Cloud (OCI) | Always Free   | Ubuntu 22.04 VPS hosting |
+| Let's Encrypt / Certbot | Latest        | Free SSL certificate with auto-renewal |
 
 ---
 
@@ -44,6 +55,8 @@ CAMS lets a user register, log in, and manage their job applications in one plac
 - **Dashboard** — pie chart by status, bar chart by source, bar chart over time; clicking a chart segment navigates to the filtered list
 - **Detail modal** — view all fields of an application inline without leaving the list page
 - **API documentation** — full Swagger UI at `/swagger-ui/index.html` with JWT Bearer authentication wired in
+- **Dockerised** — full stack runs with a single command locally or in production
+- **Live deployment** — publicly accessible at [https://cams-tracker.online](https://cams-tracker.online)
 
 ---
 
@@ -65,28 +78,69 @@ job-application-tracker/
 ├── src/main/resources/
 │   ├── application.yml         # App configuration (secrets via environment variables)
 │   └── db/migration/           # Flyway SQL migration scripts
-└── frontend/                   # React frontend
-    └── src/
-        ├── api/                # Axios instance and API functions
-        ├── context/            # AuthContext with localStorage persistence
-        ├── components/         # Navbar, ProtectedRoute, PublicRoute
-        └── pages/              # Login, Register, ApplicationsList, Dashboard, forms
+├── frontend/                   # React frontend
+│   ├── src/
+│   │   ├── api/                # Axios instance and API functions
+│   │   ├── context/            # AuthContext with localStorage persistence
+│   │   ├── components/         # Navbar, ProtectedRoute, PublicRoute
+│   │   └── pages/              # Login, Register, ApplicationsList, Dashboard, forms
+│   ├── Dockerfile              # Multi-stage Node build → Nginx serve
+│   ├── nginx.conf              # Production Nginx config (HTTPS + API reverse proxy)
+│   └── nginx.local.conf        # Local development Nginx config (plain HTTP)
+├── Dockerfile                  # Multi-stage Maven build → JRE runtime
+├── docker-compose.yml          # Production stack (PostgreSQL + backend + frontend)
+├── docker-compose.local.yml    # Local development stack
+└── .env.example                # Required environment variables reference
 ```
 
 ---
 
-## Running Locally
+## Running Locally with Docker (Recommended)
+
+**Prerequisites:** Docker Desktop installed and running.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/LyuboPetkov/job-application-tracker.git
+cd job-application-tracker
+```
+
+### 2. Create a `.env` file in the project root
+
+```
+DB_PASSWORD=your_database_password
+JWT_SECRET=your_base64_encoded_256_bit_secret
+```
+
+### 3. Start the full stack
+
+```bash
+docker compose -f docker-compose.local.yml up --build
+```
+
+The application will be available at `http://localhost`.
+
+Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+### To stop
+
+```bash
+docker compose -f docker-compose.local.yml down
+```
+
+---
+
+## Running Locally without Docker
 
 ### Prerequisites
 
 - Java 25
 - Maven 3.9+
-- PostgreSQL 15+ (running locally)
-- Node.js 24+ (LTS)
+- PostgreSQL 18 running locally
+- Node.js 22+ (LTS)
 
 ### 1. Database setup
-
-Create a PostgreSQL database and user:
 
 ```sql
 CREATE DATABASE cams_db;
@@ -97,25 +151,20 @@ ALTER DATABASE cams_db OWNER TO cams_user;
 
 ### 2. Environment variables
 
-Two values are read from environment variables and are never stored in source control.
-Set both before starting the backend:
+Set both before starting the backend, or add them to your IDE run configuration:
 
 ```bash
 export JWT_SECRET=your-base64-encoded-256-bit-secret
 export DB_PASSWORD=your-database-password
 ```
 
-Or add them to your IDE's run configuration under **Environment variables**.
-
 ### 3. Backend
-
-Update `src/main/resources/application.yml` with your database credentials, then run:
 
 ```bash
 mvn spring-boot:run
 ```
 
-Flyway will run the migrations automatically on startup. The API will be available at `http://localhost:8080`.
+Flyway will run the migrations automatically on startup. API available at `http://localhost:8080`.
 
 Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
@@ -127,7 +176,7 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173`.
+Frontend available at `http://localhost:5173`.
 
 ---
 
@@ -143,7 +192,7 @@ The frontend will be available at `http://localhost:5173`.
 | PUT | `/api/applications/{id}` | Required | Update an application |
 | DELETE | `/api/applications/{id}` | Required | Delete an application |
 
-Full interactive documentation is available via Swagger UI when the backend is running.
+Full interactive documentation available via Swagger UI when the backend is running.
 
 ---
 
@@ -159,11 +208,17 @@ Full interactive documentation is available via Swagger UI when the backend is r
 
 **Client-side dashboard statistics.** The dashboard calls the existing `GET /api/applications` endpoint with no filters and computes all statistics in JavaScript. No additional backend endpoints were needed. A pure function (`computeStats`) handles the transformation outside the component, keeping data fetching, data shaping, and rendering in separate concerns.
 
+**Nginx as HTTPS reverse proxy.** In production, the browser communicates exclusively with Nginx on port 443. API calls to `/api/` are proxied internally to the Spring Boot container on the Docker network. The backend is never exposed directly to the internet, and mixed-content blocking is avoided entirely.
+
+**Multi-stage Docker builds.** Both Dockerfiles use multi-stage builds: a heavy build-stage image compiles the application, and a minimal runtime image runs it. Source code, build tools, and dependency caches are discarded from the final image, keeping image sizes small.
+
+**Local vs production environment split.** Two docker-compose files separate local and production concerns. `docker-compose.local.yml` uses plain HTTP and `localhost:8080` as the API URL. `docker-compose.yml` uses HTTPS, the production domain, and the full Nginx reverse proxy configuration. The frontend Dockerfile accepts a build argument to select the correct Nginx config at build time.
+
 ---
 
 ## What This Project Demonstrates
 
-- Implementing JWT-based stateless authentication from scratch in Spring Security 6
+- Implementing JWT-based stateless authentication from scratch in Spring Security
 - Enforcing resource ownership at the service layer with proper `403 vs 404` distinction
 - Applying the DTO pattern with clear separation between input validation and output contracts
 - Centralised error handling with `@RestControllerAdvice` and consistent error response structure
@@ -171,6 +226,19 @@ Full interactive documentation is available via Swagger UI when the backend is r
 - Interactive API documentation with SpringDoc/OpenAPI including a wired-in JWT auth scheme
 - A React frontend with context-based auth state, JWT interceptors, and protected routing
 - Client-side data transformation and Recharts visualisation without additional backend endpoints
+- Docker containerisation with multi-stage builds and Docker Compose orchestration
+- Production deployment to a Linux VPS with Nginx reverse proxying, HTTPS, and a custom domain
+
+---
+
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DB_PASSWORD` | Yes | PostgreSQL password for `cams_user` |
+| `JWT_SECRET` | Yes | Base64-encoded 256-bit key for JWT signing |
+
+See `.env.example` for a reference file. Never commit actual values to source control.
 
 ---
 
